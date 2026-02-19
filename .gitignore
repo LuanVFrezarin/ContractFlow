@@ -37,3 +37,6 @@ next-env.d.ts
 # prisma
 prisma/migrations/dev.db
 prisma/dev.db
+
+# Adiciona a pasta .claude ao .gitignore para evitar que seja enviada ao repositório
+.claude/
