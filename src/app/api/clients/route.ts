@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, unauthorized, badRequest } from "@/lib/api-helpers";
 import { clientSchema } from "@/lib/validators";
 
+export const dynamic = "force-dynamic";
+
+
 // GET /api/clients - Listar clientes
 export async function GET(request: Request) {
   try {

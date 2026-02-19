@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, unauthorized } from "@/lib/api-helpers";
 
+export const dynamic = "force-dynamic";
+
+
 // GET /api/dashboard - Dados do dashboard
 export async function GET() {
   try {

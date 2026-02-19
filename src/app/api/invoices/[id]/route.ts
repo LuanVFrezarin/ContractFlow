@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, unauthorized, notFound } from "@/lib/api-helpers";
 
+export const dynamic = "force-dynamic";
+
+
 // GET /api/invoices/[id]
 export async function GET(
   request: Request,

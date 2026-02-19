@@ -4,6 +4,9 @@ import { getCurrentUser, unauthorized, badRequest } from "@/lib/api-helpers";
 import { contractSchema } from "@/lib/validators";
 import { generateCode } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
+
 // GET /api/contracts
 export async function GET(request: Request) {
   try {

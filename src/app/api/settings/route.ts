@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, unauthorized, badRequest } from "@/lib/api-helpers";
 import bcrypt from "bcryptjs";
 
+export const dynamic = "force-dynamic";
+
+
 // GET /api/settings - Dados do perfil do usuário
 export async function GET() {
   try {
