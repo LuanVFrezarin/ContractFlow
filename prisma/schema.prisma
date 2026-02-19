@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USUÁRIOS E AUTENTICAÇÃO
+// ============================================
+model User {
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  password       String
+  role           String    @default("ADMIN")  // ADMIN | MANAGER | VIEWER | CLIENT
+  avatar         String?
+  phone          String?
+  isActive       Boolean   @default(true)
+  emailVerified  DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  clients        Client[]
+  contracts      Contract[]
+  invoices       Invoice[]
+  activities     Activity[]
+  notifications  Notification[]
+
+  @@map("users")
+}
+
+// ============================================
+// CLIENTES
+// ============================================
+model Client {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  phone        String?
+  document     String?      @unique
+  documentType String       @default("CPF")   // CPF | CNPJ
+  company      String?
+  address      String?
+  city         String?
+  state        String?
+  zipCode      String?
+  notes        String?
+  status       String       @default("ACTIVE") // ACTIVE | INACTIVE | SUSPENDED
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  createdById  String
+
+  createdBy    User         @relation(fields: [createdById], references: [id])
+  contracts    Contract[]
+  invoices     Invoice[]
+  activities   Activity[]
+
+  @@map("clients")
+}
+
+// ============================================
+// CONTRATOS
+// ============================================
+model Contract {
+  id              String     @id @default(cuid())
+  code            String     @unique
+  clientId        String
+  title           String
+  description     String?
+  value           Float
+  billingCycle    String     @default("MONTHLY")  // WEEKLY | BIWEEKLY | MONTHLY | QUARTERLY | SEMIANNUAL | ANNUAL
+  startDate       DateTime
+  endDate         DateTime
+  renewalType     String     @default("MANUAL")   // AUTOMATIC | MANUAL | NONE
+  status          String     @default("ACTIVE")   // DRAFT | ACTIVE | SUSPENDED | CANCELLED | EXPIRED | RENEWED
+  paymentDay      Int        @default(10)
+  notes           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  createdById     String
+
+  client          Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy       User       @relation(fields: [createdById], references: [id])
+  invoices        Invoice[]
+  addendums       Addendum[]
+  activities      Activity[]
+
+  @@map("contracts")
+}
+
+// ============================================
+// ADITIVOS DE CONTRATO
+// ============================================
+model Addendum {
+  id            String   @id @default(cuid())
+  contractId    String
+  title         String
+  description   String?
+  oldValue      Float?
+  newValue      Float?
+  effectiveDate DateTime
+  createdAt     DateTime @default(now())
+
+  contract      Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("addendums")
+}
+
+// ============================================
+// COBRANÇAS / FATURAS
+// ============================================
+model Invoice {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  contractId    String
+  clientId      String
+  amount        Float
+  dueDate       DateTime
+  paidAt        DateTime?
+  paidAmount    Float?
+  status        String   @default("PENDING")  // PENDING | PAID | OVERDUE | CANCELLED | PARTIAL
+  description   String?
+  paymentMethod String?
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdById   String
+
+  contract      Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  client        Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdBy     User     @relation(fields: [createdById], references: [id])
+
+  @@map("invoices")
+}
+
+// ============================================
+// ATIVIDADES / LOG DE AUDITORIA
+// ============================================
+model Activity {
+  id          String   @id @default(cuid())
+  type        String   // CLIENT_CREATED | CONTRACT_CREATED | INVOICE_PAID | etc
+  description String
+  metadata    String?
+  userId      String
+  clientId    String?
+  contractId  String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  client      Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  contract    Contract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
+
+  @@map("activities")
+}
+
+// ============================================
+// NOTIFICAÇÕES
+// ============================================
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // CONTRACT_EXPIRING | INVOICE_OVERDUE | INVOICE_PAID | CONTRACT_RENEWED | SYSTEM
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
